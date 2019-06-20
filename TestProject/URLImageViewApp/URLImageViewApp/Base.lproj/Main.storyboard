@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14490.70" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina6_1" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14490.49"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="URLImageViewApp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="ak0-IH-imE">
+                                <rect key="frame" x="0.0" y="44" width="414" height="422"/>
+                                <subviews>
+                                    <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="ZWS-sm-AM8">
+                                        <rect key="frame" x="0.0" y="0.0" width="414" height="30"/>
+                                        <subviews>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="QeU-D4-X1g">
+                                                <rect key="frame" x="0.0" y="0.0" width="207" height="30"/>
+                                                <state key="normal" title="Image Clear"/>
+                                                <connections>
+                                                    <action selector="onImageClearButton" destination="BYZ-38-t0r" eventType="touchUpInside" id="y7A-mR-d1V"/>
+                                                </connections>
+                                            </button>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="nch-Rt-KRJ">
+                                                <rect key="frame" x="207" y="0.0" width="207" height="30"/>
+                                                <state key="normal" title="Cache Clear"/>
+                                                <connections>
+                                                    <action selector="onCacheClearButton" destination="BYZ-38-t0r" eventType="touchUpInside" id="RdP-AD-3s0"/>
+                                                </connections>
+                                            </button>
+                                        </subviews>
+                                    </stackView>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="eft-Dj-7nY">
+                                        <rect key="frame" x="0.0" y="38" width="414" height="30"/>
+                                        <state key="normal" title="Start"/>
+                                        <connections>
+                                            <action selector="onStartButton" destination="BYZ-38-t0r" eventType="touchUpInside" id="838-I9-yZH"/>
+                                        </connections>
+                                    </button>
+                                    <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="Q4h-4E-Yy1">
+                                        <rect key="frame" x="0.0" y="76" width="414" height="169"/>
+                                        <subviews>
+                                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="t2z-Ip-LGH">
+                                                <rect key="frame" x="0.0" y="0.0" width="207" height="169"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="169" id="1tv-PU-NwR"/>
+                                                </constraints>
+                                            </imageView>
+                                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="4rT-Bp-SPP">
+                                                <rect key="frame" x="207" y="0.0" width="207" height="169"/>
+                                            </imageView>
+                                        </subviews>
+                                    </stackView>
+                                    <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="O0C-fr-Hi0">
+                                        <rect key="frame" x="0.0" y="253" width="414" height="169"/>
+                                        <subviews>
+                                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="dE6-CQ-Xta">
+                                                <rect key="frame" x="0.0" y="0.0" width="207" height="169"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="169" id="aas-1M-Kyx"/>
+                                                </constraints>
+                                            </imageView>
+                                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="7lA-Iz-Nes">
+                                                <rect key="frame" x="207" y="0.0" width="207" height="169"/>
+                                            </imageView>
+                                        </subviews>
+                                    </stackView>
+                                </subviews>
+                            </stackView>
+                        </subviews>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="ak0-IH-imE" secondAttribute="trailing" id="7mp-Ju-if4"/>
+                            <constraint firstItem="ak0-IH-imE" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="FQH-h9-Nzf"/>
+                            <constraint firstItem="ak0-IH-imE" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="VIA-rP-sM3"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                    </view>
+                    <connections>
+                        <outletCollection property="imageViews" destination="t2z-Ip-LGH" collectionClass="NSMutableArray" id="QDi-CF-bxb"/>
+                        <outletCollection property="imageViews" destination="4rT-Bp-SPP" collectionClass="NSMutableArray" id="ztx-e7-d59"/>
+                        <outletCollection property="imageViews" destination="dE6-CQ-Xta" collectionClass="NSMutableArray" id="RWJ-2h-JSG"/>
+                        <outletCollection property="imageViews" destination="7lA-Iz-Nes" collectionClass="NSMutableArray" id="plV-XV-ImD"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+    </scenes>
+</document>
