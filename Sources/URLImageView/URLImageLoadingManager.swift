@@ -2,21 +2,15 @@ import Foundation
 
 public final class URLImageLoadingManager {
     public final class Task {
-        enum State {
-            case running
-            case waiting
-        }
-        
         weak var owner: URLImageLoadingManager?
         let request: URLRequest
         let urlTask: URLSessionTask
-        var state: State
         public internal(set) var data: Data
         
-        public var shouldRestartHandler: (() -> Bool)?
         public var errorHandler: ((Error) -> Void)?
         public var completeHandler: (() -> Void)?
-        
+        public var shouldRestartHandler: (() -> Bool)?
+
         init(owner: URLImageLoadingManager,
              request: URLRequest,
              urlTask: URLSessionTask)
@@ -24,7 +18,6 @@ public final class URLImageLoadingManager {
             self.owner = owner
             self.request = request
             self.urlTask = urlTask
-            self.state = .waiting
             self.data = Data()
         }
         
@@ -108,10 +101,8 @@ public final class URLImageLoadingManager {
         queue.sync {
             if (runningTasks.contains { $0.request == task.request }) {
                 print("conflict, wait")
-                task.state = .waiting
                 waitingTasks.append(task)
             } else {
-                task.state = .running
                 urlTaskMap[task.urlTask] = task
                 doesResume = true
             }
@@ -125,10 +116,6 @@ public final class URLImageLoadingManager {
     
     private func cancel(task: Task) {
         removeTask(task)
-    }
-    
-    private func syncTask(for urlTask: URLSessionTask) -> Task? {
-        return queue.sync { urlTaskMap[urlTask] }
     }
     
     private func removeTask(_ task: Task)
@@ -164,6 +151,10 @@ public final class URLImageLoadingManager {
         }
     }
 
+    private func syncTask(for urlTask: URLSessionTask) -> Task? {
+        return queue.sync { urlTaskMap[urlTask] }
+    }
+    
     private func didReceiveData(urlTask: URLSessionTask, data: Data) {
         guard let task = syncTask(for: urlTask) else { return }
         

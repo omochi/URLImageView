@@ -8,18 +8,20 @@
 
 /* Begin PBXBuildFile section */
 		D62FB6D422BB2C650008C321 /* URLImageView.h in Headers */ = {isa = PBXBuildFile; fileRef = D62FB6D222BB2C650008C321 /* URLImageView.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		D62FB6DD22BB2D590008C321 /* URLImageContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D62FB6DC22BB2D590008C321 /* URLImageContainer.swift */; };
+		D62FB6DD22BB2D590008C321 /* URLImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D62FB6DC22BB2D590008C321 /* URLImageLoader.swift */; };
 		D62FB70C22BB3EEA0008C321 /* MessageError.swift in Sources */ = {isa = PBXBuildFile; fileRef = D62FB70B22BB3EEA0008C321 /* MessageError.swift */; };
 		D62FB70E22BB4A9F0008C321 /* URLImageLoadingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D62FB70D22BB4A9F0008C321 /* URLImageLoadingManager.swift */; };
+		D62FB71022BB7C6A0008C321 /* UIImageViewEx.swift in Sources */ = {isa = PBXBuildFile; fileRef = D62FB70F22BB7C6A0008C321 /* UIImageViewEx.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		D62FB6CF22BB2C650008C321 /* URLImageView.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = URLImageView.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D62FB6D222BB2C650008C321 /* URLImageView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = URLImageView.h; sourceTree = "<group>"; };
 		D62FB6D322BB2C650008C321 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D62FB6DC22BB2D590008C321 /* URLImageContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLImageContainer.swift; sourceTree = "<group>"; };
+		D62FB6DC22BB2D590008C321 /* URLImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLImageLoader.swift; sourceTree = "<group>"; };
 		D62FB70B22BB3EEA0008C321 /* MessageError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageError.swift; sourceTree = "<group>"; };
 		D62FB70D22BB4A9F0008C321 /* URLImageLoadingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLImageLoadingManager.swift; sourceTree = "<group>"; };
+		D62FB70F22BB7C6A0008C321 /* UIImageViewEx.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImageViewEx.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,8 +66,9 @@
 			isa = PBXGroup;
 			children = (
 				D62FB70B22BB3EEA0008C321 /* MessageError.swift */,
-				D62FB6DC22BB2D590008C321 /* URLImageContainer.swift */,
+				D62FB6DC22BB2D590008C321 /* URLImageLoader.swift */,
 				D62FB70D22BB4A9F0008C321 /* URLImageLoadingManager.swift */,
+				D62FB70F22BB7C6A0008C321 /* UIImageViewEx.swift */,
 			);
 			name = Sources;
 			path = Sources/URLImageView;
@@ -151,8 +154,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				D62FB70C22BB3EEA0008C321 /* MessageError.swift in Sources */,
-				D62FB6DD22BB2D590008C321 /* URLImageContainer.swift in Sources */,
+				D62FB6DD22BB2D590008C321 /* URLImageLoader.swift in Sources */,
 				D62FB70E22BB4A9F0008C321 /* URLImageLoadingManager.swift in Sources */,
+				D62FB71022BB7C6A0008C321 /* UIImageViewEx.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -211,7 +215,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -269,7 +273,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;

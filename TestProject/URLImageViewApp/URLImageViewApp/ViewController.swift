@@ -13,27 +13,28 @@ class ViewController: UIViewController {
 
     @IBOutlet private var imageViews: [UIImageView]!
     
-    var cons: [URLImageContainer] = []
+    var cons: [URLImageLoader] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        for iv in imageViews {
+            iv.showsSpinner = true
+        }
+        
         imageViews.enumerated().forEach { (i, iv) in
-            let con = URLImageContainer()
-            con.imageUpdateHandler = { [weak iv] (image) in
+            let con = URLImageLoader()
+            con.imageHandler = { [weak iv] (image) in
                 guard let iv = iv else { return }
                 iv.image = image
             }
             cons.append(con)
         }
-        
-        
-
     }
     
     @IBAction func onImageClearButton() {
         for iv in imageViews {
-            iv.image = nil
+            iv.url = nil
         }
     }
 
@@ -43,9 +44,9 @@ class ViewController: UIViewController {
 
     @IBAction func onStartButton() {
         let url = "https://petraku.com/wp-content/uploads/2016/03/Fotolia_76874833_Subscription_Monthly_M-e1458550340763.jpg"
-        for con in cons {
-            con.url = URL(string: url)!
-            con.start()
+        
+        for iv in imageViews {
+            iv.url = URL(string: url)!
         }
     }
 }

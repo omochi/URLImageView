@@ -1,10 +1,9 @@
 import Foundation
 import os
 
-public final class URLImageContainer {
+public final class URLImageLoader {
     public enum State {
         case inited
-        case pending
         case loading
         case loaded
         case failed
@@ -12,30 +11,47 @@ public final class URLImageContainer {
     
     public var loadingManager: URLImageLoadingManager
     public var url: URL?
-    public var imageUpdateHandler: ((UIImage?) -> Void)?
+    public private(set) var image: UIImage? {
+        didSet {
+            imageHandler?(image)
+        }
+    }
+    public var imageHandler: ((UIImage?) -> Void)?
+    public var isLoading: Bool {
+        switch state {
+        case .loading: return true
+        case .inited, .loaded, .failed: return false
+        }
+    }
+    public var isLoadingHandler: ((Bool) -> Void)?
     
-    private var state: State
+    private var state: State {
+        get { return _state }
+        set {
+            let oldIsLoading = isLoading
+            _state = newValue
+            let newIsLoading = isLoading
+            if oldIsLoading != newIsLoading {
+                isLoadingHandler?(newIsLoading)
+            }
+        }
+    }
+    private var _state: State
+    
     private let callbackQueue: OperationQueue
 
     private var loadingTask: URLImageLoadingManager.Task?
     
     public init() {
         self.loadingManager = URLImageLoadingManager.shared
-        self.state = .inited
+        self._state = .inited
         self.callbackQueue = OperationQueue.main
     }
 
     public func start() {
         precondition(OperationQueue.current == callbackQueue)
         
-        callbackQueue.cancelAllOperations()
-        
-        switch state {
-        case .inited, .loaded, .failed: break
-        case .pending, .loading:
-            log("invalid state: \(state) in start")
-            return
-        }
+        cancel()
         
         guard let url = self.url else {
             handleSuccess(image: nil)
@@ -67,29 +83,26 @@ public final class URLImageContainer {
     private func tryLoadFromCache(request: URLRequest)
         -> Bool
     {
-        if let response = loadingManager.urlCache.cachedResponse(for: request) {
-            log("cache hit")
-            if let image = try? processData(response.data) {
-                log("cache load")
-                
-                func finish() {
-                    self.state = .loaded
-                    self.emitImage(image)
-                }
-                
-                if OperationQueue.current == callbackQueue {
-                    finish()
-                } else {
-                    callbackQueue.addOperation(finish)
-                }
-                
-                return true
-            }
-            
-            loadingManager.urlCache.removeCachedResponse(for: request)
+        guard let response = loadingManager.urlCache.cachedResponse(for: request) else {
+            return false
         }
         
-        return false
+        guard let image = try? processData(response.data) else {
+            loadingManager.urlCache.removeCachedResponse(for: request)
+            return false
+        }
+        
+        func finish() {
+            handleSuccess(image: image)
+        }
+        
+        if OperationQueue.current == callbackQueue {
+            finish()
+        } else {
+            callbackQueue.addOperation(finish)
+        }
+        
+        return true
     }
     
     private func processData(_ data: Data) throws -> UIImage {
@@ -100,8 +113,6 @@ public final class URLImageContainer {
     }
     
     private func startDownload(request: URLRequest) {
-        log("start download")
-        
         let task = loadingManager.task(request: request)
         task.errorHandler = { [weak self] (error) in
             guard let self = self else { return }
@@ -147,26 +158,15 @@ public final class URLImageContainer {
         
         self.state = .loaded
         loadingTask = nil
-        self.emitImage(image)
+        self.image = image
     }
 
     private func handleError(_ error: Error) {
         precondition(OperationQueue.current == callbackQueue)
         
-        log("error: url=\(url?.description ?? ""), \(error)")
-        
         self.state = .failed
         loadingTask = nil
-        self.emitImage(nil)
-    }
-    
-    private func emitImage(_ image: UIImage?) {
-        precondition(OperationQueue.current == callbackQueue)
-        imageUpdateHandler?(image)
-    }
-    
-    private func log(_ message: String) {
-        os_log("%@", message)
+        self.image = nil
     }
     
 }
