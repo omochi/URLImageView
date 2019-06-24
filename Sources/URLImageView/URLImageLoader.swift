@@ -62,7 +62,7 @@ public final class URLImageLoader {
         
         let request = URLRequest(url: url)
         
-        if tryLoadFromCache(request: request) {
+        if tryLoadFromCacheInCallbackQueue(request: request) {
             return
         }
         
@@ -80,28 +80,39 @@ public final class URLImageLoader {
         self.state = .inited
     }
     
-    private func tryLoadFromCache(request: URLRequest)
-        -> Bool
+    private func _tryLoadFromCache(request: URLRequest) -> UIImage?
     {
         guard let response = loadingManager.urlCache.cachedResponse(for: request) else {
-            return false
+            return nil
         }
         
         guard let image = try? processData(response.data) else {
             loadingManager.urlCache.removeCachedResponse(for: request)
+            return nil
+        }
+        
+        return image
+    }
+    
+    private func tryLoadFromCacheInCallbackQueue(request: URLRequest) -> Bool {
+        precondition(OperationQueue.current == callbackQueue)
+        
+        guard let image = _tryLoadFromCache(request: request) else {
             return false
         }
+        handleSuccess(image: image)
+        return true
+    }
+    
+    private func tryLoadFromCacheInNetworkQueue(request: URLRequest) -> Bool {
+        precondition(OperationQueue.current == loadingManager.queue)
         
-        func finish() {
-            handleSuccess(image: image)
+        guard let image = _tryLoadFromCache(request: request) else {
+            return false
         }
-        
-        if OperationQueue.current == callbackQueue {
-            finish()
-        } else {
-            callbackQueue.addOperation(finish)
+        callbackQueue.addOperation {
+            self.handleSuccess(image: image)
         }
-        
         return true
     }
     
@@ -143,7 +154,7 @@ public final class URLImageLoader {
                 return false
             }
             
-            if self.tryLoadFromCache(request: request) {
+            if self.tryLoadFromCacheInNetworkQueue(request: request) {
                 return false
             }
             

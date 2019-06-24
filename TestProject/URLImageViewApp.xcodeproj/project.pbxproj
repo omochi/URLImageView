@@ -12,19 +12,19 @@
 		D62FB6F022BB2D8A0008C321 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D62FB6EE22BB2D8A0008C321 /* Main.storyboard */; };
 		D62FB6F222BB2D8C0008C321 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D62FB6F122BB2D8C0008C321 /* Assets.xcassets */; };
 		D62FB6F522BB2D8C0008C321 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D62FB6F322BB2D8C0008C321 /* LaunchScreen.storyboard */; };
-		D62FB70422BB2EE20008C321 /* URLImageView.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D62FB70122BB2D9F0008C321 /* URLImageView.framework */; };
-		D62FB70522BB2EE20008C321 /* URLImageView.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D62FB70122BB2D9F0008C321 /* URLImageView.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		D665600822C08F6900C47F6E /* URLImageView.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D665600422C08D6100C47F6E /* URLImageView.framework */; };
+		D665600922C08F6900C47F6E /* URLImageView.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = D665600422C08D6100C47F6E /* URLImageView.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		D62FB70022BB2D9F0008C321 /* PBXContainerItemProxy */ = {
+		D665600322C08D6100C47F6E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D62FB6FC22BB2D9F0008C321 /* URLImageView.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = D62FB6CF22BB2C650008C321;
 			remoteInfo = URLImageView;
 		};
-		D62FB70622BB2EE20008C321 /* PBXContainerItemProxy */ = {
+		D665600A22C08F6900C47F6E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D62FB6FC22BB2D9F0008C321 /* URLImageView.xcodeproj */;
 			proxyType = 1;
@@ -40,7 +40,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				D62FB70522BB2EE20008C321 /* URLImageView.framework in Embed Frameworks */,
+				D665600922C08F6900C47F6E /* URLImageView.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -55,7 +55,7 @@
 		D62FB6F122BB2D8C0008C321 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D62FB6F422BB2D8C0008C321 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D62FB6F622BB2D8C0008C321 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D62FB6FC22BB2D9F0008C321 /* URLImageView.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = URLImageView.xcodeproj; path = ../../URLImageView.xcodeproj; sourceTree = "<group>"; };
+		D62FB6FC22BB2D9F0008C321 /* URLImageView.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = URLImageView.xcodeproj; path = ../URLImageView.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,7 +63,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D62FB70422BB2EE20008C321 /* URLImageView.framework in Frameworks */,
+				D665600822C08F6900C47F6E /* URLImageView.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -101,19 +101,19 @@
 			path = URLImageViewApp;
 			sourceTree = "<group>";
 		};
-		D62FB6FD22BB2D9F0008C321 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				D62FB70122BB2D9F0008C321 /* URLImageView.framework */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		D62FB70222BB2E290008C321 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		D665600022C08D6100C47F6E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D665600422C08D6100C47F6E /* URLImageView.framework */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -131,7 +131,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				D62FB70722BB2EE20008C321 /* PBXTargetDependency */,
+				D665600B22C08F6900C47F6E /* PBXTargetDependency */,
 			);
 			name = URLImageViewApp;
 			productName = URLImageViewApp;
@@ -166,7 +166,7 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = D62FB6FD22BB2D9F0008C321 /* Products */;
+					ProductGroup = D665600022C08D6100C47F6E /* Products */;
 					ProjectRef = D62FB6FC22BB2D9F0008C321 /* URLImageView.xcodeproj */;
 				},
 			);
@@ -178,11 +178,11 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		D62FB70122BB2D9F0008C321 /* URLImageView.framework */ = {
+		D665600422C08D6100C47F6E /* URLImageView.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = URLImageView.framework;
-			remoteRef = D62FB70022BB2D9F0008C321 /* PBXContainerItemProxy */;
+			remoteRef = D665600322C08D6100C47F6E /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -213,10 +213,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		D62FB70722BB2EE20008C321 /* PBXTargetDependency */ = {
+		D665600B22C08F6900C47F6E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = URLImageView;
-			targetProxy = D62FB70622BB2EE20008C321 /* PBXContainerItemProxy */;
+			targetProxy = D665600A22C08F6900C47F6E /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

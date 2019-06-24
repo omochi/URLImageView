@@ -58,16 +58,17 @@ public final class URLImageLoadingManager {
         URLImageLoadingManager(urlCache: URLCache.shared)
     
     public let urlCache: URLCache
-    
-    private let queue: DispatchQueue
+    public let queue: OperationQueue
     private let delegateAdapter: DelegateAdapter
     private let session: URLSession
     
     private var urlTaskMap: [URLSessionTask: Task] = [:]
     private var waitingTasks: [Task] = []
+    private var isUpdateRunning: Bool = false
 
     public init(urlCache: URLCache) {
-        queue = DispatchQueue(label: "URLImageLoadingManager")
+        queue = OperationQueue()
+        queue.name = "URLImageLoadingManager.queue"
         
         self.urlCache = urlCache
         let config = URLSessionConfiguration.default.copy() as! URLSessionConfiguration
@@ -78,7 +79,7 @@ public final class URLImageLoadingManager {
         
         self.session = URLSession(configuration: config,
                                   delegate: delegateAdapter,
-                                  delegateQueue: nil)
+                                  delegateQueue: queue)
         
         delegateAdapter.owner = self
     }
@@ -96,73 +97,78 @@ public final class URLImageLoadingManager {
     }
     
     private func start(task: Task) {
-        var doesResume = false
-        
-        queue.sync {
-            if (runningTasks.contains { $0.request == task.request }) {
+        queue.addOperation {
+            if (self.runningTasks.contains { $0.request == task.request }) {
                 print("conflict, wait")
-                waitingTasks.append(task)
+                self.waitingTasks.append(task)
             } else {
-                urlTaskMap[task.urlTask] = task
-                doesResume = true
+                self.urlTaskMap[task.urlTask] = task
+                task.urlTask.resume()
             }
-        }
-        
-        if doesResume {
-            print("resume")
-            task.urlTask.resume()
         }
     }
     
     private func cancel(task: Task) {
-        removeTask(task)
+        let op = BlockOperation {
+            self.removeTask(task)
+        }
+        queue.addOperation(op)
+        op.waitUntilFinished()
     }
     
     private func removeTask(_ task: Task)
     {
-        queue.sync {
-            waitingTasks.removeAll { $0 === task }
-            
-            if let _ = urlTaskMap[task.urlTask] {
-                _ = urlTaskMap.removeValue(forKey: task.urlTask)
-            }
+        precondition(OperationQueue.current == queue)
+        
+        waitingTasks.removeAll { $0 === task }
+        
+        if let _ = urlTaskMap[task.urlTask] {
+            _ = urlTaskMap.removeValue(forKey: task.urlTask)
         }
         
         task.urlTask.cancel()
         
-        while true {
-            var resumingTaskOrNone: Task?
-            
-            queue.sync {
-                if let index = (waitingTasks.firstIndex { $0.request == task.request }) {
-                    resumingTaskOrNone = waitingTasks[index]
-                    waitingTasks.remove(at: index)
-                }
+        queue.addOperation {
+            self.tryResume()
+        }
+    }
+    
+    private func isSameRequestRunning(_ request: URLRequest) -> Bool {
+        return runningTasks.contains { $0.request == request }
+    }
+    
+    private func tryResume() {
+        precondition(OperationQueue.current == queue)
+        
+        let waitingTasks = self.waitingTasks
+        for task in waitingTasks {
+            if isSameRequestRunning(task.request) {
+                continue
             }
             
-            guard let resumingTask = resumingTaskOrNone else {
-                break
-            }
-
-            if resumingTask.shouldRestartHandler?() ?? false {
-                start(task: resumingTask)
-                break
+            self.waitingTasks.removeAll { $0 === task }
+            
+            let doesRestart = task.shouldRestartHandler?() ?? false
+            
+            if doesRestart {
+                start(task: task)
+                return
             }
         }
     }
 
-    private func syncTask(for urlTask: URLSessionTask) -> Task? {
-        return queue.sync { urlTaskMap[urlTask] }
+    private func task(for urlTask: URLSessionTask) -> Task? {
+        return urlTaskMap[urlTask]
     }
     
     private func didReceiveData(urlTask: URLSessionTask, data: Data) {
-        guard let task = syncTask(for: urlTask) else { return }
+        guard let task = task(for: urlTask) else { return }
         
         task.data.append(data)
     }
     
     private func didError(urlTask: URLSessionTask, error: Error) {
-        guard let task = syncTask(for: urlTask) else { return }
+        guard let task = task(for: urlTask) else { return }
         
         task.errorHandler?(error)
         
@@ -170,7 +176,7 @@ public final class URLImageLoadingManager {
     }
     
     private func didComplete(urlTask: URLSessionTask) {
-        guard let task = syncTask(for: urlTask) else { return }
+        guard let task = task(for: urlTask) else { return }
         
         task.completeHandler?()
         
