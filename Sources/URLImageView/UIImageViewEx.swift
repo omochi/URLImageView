@@ -49,14 +49,16 @@ internal final class UIImageViewEx {
     
     public var urlImageHandler: ((UIImage?) -> Void)?
     public var isURLLoadingHandler: ((Bool) -> Void)?
-    public var showsURLSpinner: Bool
+    public var showsURLSpinner: Bool = false
     public var spinner: UIActivityIndicatorView?
     public var urlImageFilter: ((UIImage?) -> UIImage?)?
+    public var doesRenderWhenResized: Bool = false
+    
+    private var observations: [NSKeyValueObservation]!
     
     public init(view: UIImageView) {
         self.view = view
         self.loader = URLImageLoader()
-        self.showsURLSpinner = false
         
         loader.imageHandler = { [weak self] (image) in
             guard let self = self else { return }
@@ -74,6 +76,14 @@ internal final class UIImageViewEx {
             
             self.isURLLoadingHandler?(isLoading)
         }
+        self.observations = [
+            view.observe(\.bounds) { [weak self] (_, _) in
+                guard let self = self else { return }
+                if self.doesRenderWhenResized {
+                    self.renderURLImage()
+                }
+            }
+        ]
     }
     
     private func showURLSpinner() {
@@ -162,6 +172,11 @@ extension UIImageView {
     public var urlImageFilter: ((UIImage?) -> UIImage?)? {
         get { return ex.urlImageFilter }
         set { ex.urlImageFilter = newValue }
+    }
+    
+    public var doesRenderWhenResized: Bool {
+        get { return ex.doesRenderWhenResized }
+        set { ex.doesRenderWhenResized = newValue }
     }
     
     public func renderURLImage() {
