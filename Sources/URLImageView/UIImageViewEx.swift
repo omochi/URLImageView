@@ -3,6 +3,7 @@ import UIKit
 internal final class UIImageViewEx {
     public var loader: URLImageLoader
     public var url: URL?
+    public var urlImageHandler: ((UIImage?) -> Void)?
     public var showsSpinner: Bool
     public var spinner: UIActivityIndicatorView?
     
@@ -33,15 +34,19 @@ extension UIImageView {
     
     private func makeEx() -> UIImageViewEx {
         let ex = UIImageViewEx(loader: URLImageLoader())
-        ex.loader.imageHandler = { [weak self] (image) in
-            guard let self = self else { return }
+        ex.loader.imageHandler = { [weak self, weak ex] (image) in
+            guard let self = self,
+                let ex = ex else { return }
+
+            self.image = image
             
-            self.image = image            
+            ex.urlImageHandler?(image)
         }
-        ex.loader.isLoadingHandler = { [weak self] (isLoading) in
-            guard let self = self else { return }
+        ex.loader.isLoadingHandler = { [weak self, weak ex] (isLoading) in
+            guard let self = self,
+                let ex = ex else { return }
             
-            if isLoading {
+            if isLoading, ex.showsSpinner {
                 self.showSpinner()
             } else {
                 self.hideSpinner()
@@ -51,9 +56,7 @@ extension UIImageView {
     }
     
     public var url: URL? {
-        get {
-            return ex.url
-        }
+        get { return ex.url }
         set {
             let ex = self.ex
             let oldValue = self.url
@@ -78,6 +81,11 @@ extension UIImageView {
                 ex.loader.start()
             }
         }
+    }
+    
+    public var urlImageHandler: ((UIImage?) -> Void)? {
+        get { return ex.urlImageHandler }
+        set { ex.urlImageHandler = newValue }
     }
     
     public var showsSpinner: Bool {
