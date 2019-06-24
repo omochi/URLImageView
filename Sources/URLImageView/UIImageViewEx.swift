@@ -1,15 +1,112 @@
 import UIKit
 
 internal final class UIImageViewEx {
-    public var loader: URLImageLoader
-    public var url: URL?
-    public var urlImageHandler: ((UIImage?) -> Void)?
-    public var showsSpinner: Bool
-    public var spinner: UIActivityIndicatorView?
+    public unowned let view: UIImageView
     
-    public init(loader: URLImageLoader) {
-        self.loader = loader
-        self.showsSpinner = false
+    public let loader: URLImageLoader
+    
+    public var url: URL? {
+        get { return _url }
+        set {
+            let oldValue = _url
+            _url = newValue
+            
+            func needsStart() -> Bool {
+                if oldValue != newValue {
+                    return true
+                }
+                
+                if let _ = newValue,
+                    loader.image == nil
+                {
+                    return true
+                }
+                
+                return false
+            }
+            
+            if needsStart() {
+                loader.url = newValue
+                loader.start()
+            }
+        }
+    }
+    
+    private var _url: URL?
+    
+    public var urlImage: UIImage? {
+        get { return _urlImage }
+        set {
+            _urlImage = newValue
+            
+            renderURLImage()
+            
+            urlImageHandler?(_urlImage)
+        }
+    }
+    
+    private var _urlImage: UIImage?
+    
+    public var urlImageHandler: ((UIImage?) -> Void)?
+    public var isURLLoadingHandler: ((Bool) -> Void)?
+    public var showsURLSpinner: Bool
+    public var spinner: UIActivityIndicatorView?
+    public var urlImageFilter: ((UIImage?) -> UIImage?)?
+    
+    public init(view: UIImageView) {
+        self.view = view
+        self.loader = URLImageLoader()
+        self.showsURLSpinner = false
+        
+        loader.imageHandler = { [weak self] (image) in
+            guard let self = self else { return }
+            
+            self.urlImage = image
+        }
+        loader.isLoadingHandler = { [weak self] (isLoading) in
+            guard let self = self else { return }
+            
+            if isLoading, self.showsURLSpinner {
+                self.showURLSpinner()
+            } else {
+                self.hideURLSpinner()
+            }
+            
+            self.isURLLoadingHandler?(isLoading)
+        }
+    }
+    
+    private func showURLSpinner() {
+        if let _ = self.spinner { return }
+        
+        let spinner = UIActivityIndicatorView(style: .gray)
+        self.spinner = spinner
+        
+        spinner.startAnimating()
+        
+        view.addSubview(spinner)
+        
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            spinner.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            spinner.centerYAnchor.constraint(equalTo: view.centerYAnchor)])
+    }
+    
+    private func hideURLSpinner() {
+        guard let spinner = self.spinner else {
+            return
+        }
+        
+        spinner.removeFromSuperview()
+        self.spinner = nil
+    }
+    
+    public func renderURLImage() {
+        var image = urlImage
+        if let filter = urlImageFilter {
+            image = filter(image)
+        }
+        view.image = image
     }
 }
 
@@ -22,7 +119,7 @@ extension UIImageView {
                 return ex
             }
             
-            let ex = makeEx()
+            let ex = UIImageViewEx(view: self)
             self.ex = ex
             return ex
         }
@@ -32,55 +129,14 @@ extension UIImageView {
         }
     }
     
-    private func makeEx() -> UIImageViewEx {
-        let ex = UIImageViewEx(loader: URLImageLoader())
-        ex.loader.imageHandler = { [weak self, weak ex] (image) in
-            guard let self = self,
-                let ex = ex else { return }
-
-            self.image = image
-            
-            ex.urlImageHandler?(image)
-        }
-        ex.loader.isLoadingHandler = { [weak self, weak ex] (isLoading) in
-            guard let self = self,
-                let ex = ex else { return }
-            
-            if isLoading, ex.showsSpinner {
-                self.showSpinner()
-            } else {
-                self.hideSpinner()
-            }
-        }
-        return ex
-    }
-    
     public var url: URL? {
         get { return ex.url }
-        set {
-            let ex = self.ex
-            let oldValue = self.url
-            ex.url = newValue
-            
-            func needsStart() -> Bool {
-                if oldValue != newValue {
-                    return true
-                }
-                
-                if let _ = newValue,
-                    ex.loader.image == nil
-                {
-                    return true
-                }
-                
-                return false
-            }
-            
-            if needsStart() {
-                ex.loader.url = newValue
-                ex.loader.start()
-            }
-        }
+        set { ex.url = newValue }
+    }
+    
+    public var urlImage: UIImage? {
+        get { return ex.urlImage }
+        set { ex.urlImage = newValue }
     }
     
     public var urlImageHandler: ((UIImage?) -> Void)? {
@@ -88,34 +144,27 @@ extension UIImageView {
         set { ex.urlImageHandler = newValue }
     }
     
-    public var showsSpinner: Bool {
-        get { return ex.showsSpinner }
-        set { ex.showsSpinner = newValue }
+    public var isURLLoading: Bool {
+        get { return ex.loader.isLoading }
     }
     
-    private func showSpinner() {
-        if let _ = ex.spinner { return }
-        
-        let spinner = UIActivityIndicatorView(style: .gray)
-        ex.spinner = spinner
-        
-        spinner.startAnimating()
-        
-        self.addSubview(spinner)
-        
-        spinner.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            spinner.centerXAnchor.constraint(equalTo: centerXAnchor),
-            spinner.centerYAnchor.constraint(equalTo: centerYAnchor)])
+    public var isURLLoadingHandler: ((Bool) -> Void)? {
+        get { return ex.isURLLoadingHandler }
+        set { ex.isURLLoadingHandler = newValue }
     }
     
-    private func hideSpinner() {
-        guard let spinner = ex.spinner else {
-            return
-        }
-        
-        spinner.removeFromSuperview()
-        ex.spinner = nil
+    @IBInspectable
+    public var showsURLSpinner: Bool {
+        get { return ex.showsURLSpinner }
+        set { ex.showsURLSpinner = newValue }
     }
     
+    public var urlImageFilter: ((UIImage?) -> UIImage?)? {
+        get { return ex.urlImageFilter }
+        set { ex.urlImageFilter = newValue }
+    }
+    
+    public func renderURLImage() {
+        ex.renderURLImage()
+    }
 }

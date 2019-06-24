@@ -66,6 +66,8 @@ public final class URLImageLoader {
             return
         }
         
+        self.image = nil
+        
         startDownload(request: request)
     }
     
