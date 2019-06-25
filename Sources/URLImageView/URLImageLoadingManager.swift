@@ -99,7 +99,6 @@ public final class URLImageLoadingManager {
     private func start(task: Task) {
         queue.addOperation {
             if (self.runningTasks.contains { $0.request == task.request }) {
-                print("conflict, wait")
                 self.waitingTasks.append(task)
             } else {
                 self.urlTaskMap[task.urlTask] = task
