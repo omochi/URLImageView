@@ -1,152 +1,49 @@
 import UIKit
 
-internal final class UIImageViewEx {
+internal final class UIImageViewEx : ExProtocol {
     public unowned let view: UIImageView
-    
-    public let loader: URLImageLoader
-    
-    public var url: URL? {
-        get { return _url }
-        set {
-            let oldValue = _url
-            _url = newValue
-            
-            func needsStart() -> Bool {
-                if oldValue != newValue {
-                    return true
-                }
-                
-                if let _ = newValue,
-                    loader.image == nil
-                {
-                    return true
-                }
-                
-                return false
-            }
-            
-            if needsStart() {
-                loader.url = newValue
-                loader.start()
-            }
-        }
-    }
-    
-    private var _url: URL?
-    
-    public var urlImage: UIImage? {
-        get { return _urlImage }
-        set {
-            _urlImage = newValue
-            
-            renderURLImage()
-            
-            urlImageHandler?(_urlImage)
-        }
-    }
-    
-    private var _urlImage: UIImage?
-    
+    public let url: URLImageProperty
     public var urlImageHandler: ((UIImage?) -> Void)?
     public var isURLLoadingHandler: ((Bool) -> Void)?
     public var showsURLSpinner: Bool = false
     public var spinner: UIActivityIndicatorView?
-    public var urlImageFilter: ((UIImage?) -> UIImage?)?
-    public var doesRenderWhenResized: Bool = false
     
-    private var observations: [NSKeyValueObservation]!
-    
-    public init(view: UIImageView) {
-        self.view = view
-        self.loader = URLImageLoader()
-        
-        loader.imageHandler = { [weak self] (image) in
-            guard let self = self else { return }
-            
-            self.urlImage = image
-        }
-        loader.isLoadingHandler = { [weak self] (isLoading) in
+    public init(view: UIView) {
+        self.view = view as! UIImageView
+        self.url = URLImageProperty()
+
+        url.isLoadingHandler = { [weak self] (isLoading) in
             guard let self = self else { return }
             
             if isLoading, self.showsURLSpinner {
-                self.showURLSpinner()
+                self.view.showSpinnerIfNeed(spinner: &self.spinner)
             } else {
-                self.hideURLSpinner()
+                self.view.hideSpinner(spinner: &self.spinner)
             }
             
             self.isURLLoadingHandler?(isLoading)
         }
-        self.observations = [
-            view.observe(\.bounds) { [weak self] (_, _) in
-                guard let self = self else { return }
-                if self.doesRenderWhenResized {
-                    self.renderURLImage()
-                }
-            }
-        ]
-    }
-    
-    private func showURLSpinner() {
-        if let _ = self.spinner { return }
-        
-        let spinner = UIActivityIndicatorView(style: .gray)
-        self.spinner = spinner
-        
-        spinner.startAnimating()
-        
-        view.addSubview(spinner)
-        
-        spinner.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            spinner.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            spinner.centerYAnchor.constraint(equalTo: view.centerYAnchor)])
-    }
-    
-    private func hideURLSpinner() {
-        guard let spinner = self.spinner else {
-            return
+        url.imageHandler = { [weak self] (image) in
+            guard let self = self else { return }
+            
+            self.view.image = image
+            
+            self.urlImageHandler?(image)
         }
-        
-        spinner.removeFromSuperview()
-        self.spinner = nil
-    }
-    
-    public func renderURLImage() {
-        var image = urlImage
-        if let filter = urlImageFilter {
-            image = filter(image)
-        }
-        view.image = image
     }
 }
 
-internal var exKey: UInt8 = 0
-
 extension UIImageView {
-    internal var ex: UIImageViewEx {
-        get {
-            if let ex = objc_getAssociatedObject(self, &exKey) as? UIImageViewEx {
-                return ex
-            }
-            
-            let ex = UIImageViewEx(view: self)
-            self.ex = ex
-            return ex
-        }
-        set {
-            objc_setAssociatedObject(self, &exKey, newValue,
-                                     .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        }
-    }
+    internal var ex: UIImageViewEx { return exImpl() }
     
     public var url: URL? {
-        get { return ex.url }
-        set { ex.url = newValue }
+        get { return ex.url.url }
+        set { ex.url.url = newValue }
     }
     
     public var urlImage: UIImage? {
-        get { return ex.urlImage }
-        set { ex.urlImage = newValue }
+        get { return ex.url.image }
+        set { ex.url.image = newValue }
     }
     
     public var urlImageHandler: ((UIImage?) -> Void)? {
@@ -154,8 +51,13 @@ extension UIImageView {
         set { ex.urlImageHandler = newValue }
     }
     
+    public var urlImageFilter: ((UIImage?) -> UIImage?)? {
+        get { return ex.url.imageFilter }
+        set { ex.url.imageFilter = newValue }
+    }
+    
     public var isURLLoading: Bool {
-        get { return ex.loader.isLoading }
+        get { return ex.url.isLoading }
     }
     
     public var isURLLoadingHandler: ((Bool) -> Void)? {
@@ -168,18 +70,8 @@ extension UIImageView {
         get { return ex.showsURLSpinner }
         set { ex.showsURLSpinner = newValue }
     }
-    
-    public var urlImageFilter: ((UIImage?) -> UIImage?)? {
-        get { return ex.urlImageFilter }
-        set { ex.urlImageFilter = newValue }
-    }
-    
-    public var doesRenderWhenResized: Bool {
-        get { return ex.doesRenderWhenResized }
-        set { ex.doesRenderWhenResized = newValue }
-    }
-    
+
     public func renderURLImage() {
-        ex.renderURLImage()
+        ex.url.render()
     }
 }

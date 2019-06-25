@@ -69,6 +69,7 @@ public final class URLImageLoadingManager {
     public init(urlCache: URLCache) {
         queue = OperationQueue()
         queue.name = "URLImageLoadingManager.queue"
+        queue.maxConcurrentOperationCount = 1
         
         self.urlCache = urlCache
         let config = URLSessionConfiguration.default.copy() as! URLSessionConfiguration

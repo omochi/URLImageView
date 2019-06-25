@@ -12,6 +12,10 @@
 		D62FB70C22BB3EEA0008C321 /* MessageError.swift in Sources */ = {isa = PBXBuildFile; fileRef = D62FB70B22BB3EEA0008C321 /* MessageError.swift */; };
 		D62FB70E22BB4A9F0008C321 /* URLImageLoadingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D62FB70D22BB4A9F0008C321 /* URLImageLoadingManager.swift */; };
 		D62FB71022BB7C6A0008C321 /* UIImageViewEx.swift in Sources */ = {isa = PBXBuildFile; fileRef = D62FB70F22BB7C6A0008C321 /* UIImageViewEx.swift */; };
+		D660CB9F22C1DDF500BF9AE8 /* UIViewInternalEx.swift in Sources */ = {isa = PBXBuildFile; fileRef = D660CB9E22C1DDF500BF9AE8 /* UIViewInternalEx.swift */; };
+		D660CBA122C1E02400BF9AE8 /* URLImageProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = D660CBA022C1E02400BF9AE8 /* URLImageProperty.swift */; };
+		D660CBA322C1E50900BF9AE8 /* UIButtonEx.swift in Sources */ = {isa = PBXBuildFile; fileRef = D660CBA222C1E50900BF9AE8 /* UIButtonEx.swift */; };
+		D660CBA522C1E59900BF9AE8 /* ExProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D660CBA422C1E59900BF9AE8 /* ExProtocol.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,6 +26,10 @@
 		D62FB70B22BB3EEA0008C321 /* MessageError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageError.swift; sourceTree = "<group>"; };
 		D62FB70D22BB4A9F0008C321 /* URLImageLoadingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLImageLoadingManager.swift; sourceTree = "<group>"; };
 		D62FB70F22BB7C6A0008C321 /* UIImageViewEx.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIImageViewEx.swift; sourceTree = "<group>"; };
+		D660CB9E22C1DDF500BF9AE8 /* UIViewInternalEx.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIViewInternalEx.swift; sourceTree = "<group>"; };
+		D660CBA022C1E02400BF9AE8 /* URLImageProperty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLImageProperty.swift; sourceTree = "<group>"; };
+		D660CBA222C1E50900BF9AE8 /* UIButtonEx.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIButtonEx.swift; sourceTree = "<group>"; };
+		D660CBA422C1E59900BF9AE8 /* ExProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExProtocol.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,7 +76,11 @@
 				D62FB70B22BB3EEA0008C321 /* MessageError.swift */,
 				D62FB6DC22BB2D590008C321 /* URLImageLoader.swift */,
 				D62FB70D22BB4A9F0008C321 /* URLImageLoadingManager.swift */,
+				D660CBA022C1E02400BF9AE8 /* URLImageProperty.swift */,
+				D660CBA422C1E59900BF9AE8 /* ExProtocol.swift */,
+				D660CB9E22C1DDF500BF9AE8 /* UIViewInternalEx.swift */,
 				D62FB70F22BB7C6A0008C321 /* UIImageViewEx.swift */,
+				D660CBA222C1E50900BF9AE8 /* UIButtonEx.swift */,
 			);
 			name = Sources;
 			path = Sources/URLImageView;
@@ -154,8 +166,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				D62FB70C22BB3EEA0008C321 /* MessageError.swift in Sources */,
+				D660CB9F22C1DDF500BF9AE8 /* UIViewInternalEx.swift in Sources */,
+				D660CBA522C1E59900BF9AE8 /* ExProtocol.swift in Sources */,
 				D62FB6DD22BB2D590008C321 /* URLImageLoader.swift in Sources */,
+				D660CBA322C1E50900BF9AE8 /* UIButtonEx.swift in Sources */,
 				D62FB70E22BB4A9F0008C321 /* URLImageLoadingManager.swift in Sources */,
+				D660CBA122C1E02400BF9AE8 /* URLImageProperty.swift in Sources */,
 				D62FB71022BB7C6A0008C321 /* UIImageViewEx.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
