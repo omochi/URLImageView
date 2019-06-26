@@ -19,16 +19,7 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         
         for iv in imageViews {
-            iv.showsSpinner = true
-        }
-        
-        imageViews.enumerated().forEach { (i, iv) in
-            let con = URLImageLoader()
-            con.imageHandler = { [weak iv] (image) in
-                guard let iv = iv else { return }
-                iv.image = image
-            }
-            cons.append(con)
+            iv.showsURLSpinner = true
         }
     }
     
