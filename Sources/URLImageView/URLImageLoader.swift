@@ -42,10 +42,10 @@ public final class URLImageLoader {
 
     private var loadingTask: URLImageLoadingManager.Task?
     
-    public init() {
+    public init(callbackQueue: OperationQueue) {
         self.loadingManager = URLImageLoadingManager.shared
         self._state = .inited
-        self.callbackQueue = OperationQueue.main
+        self.callbackQueue = callbackQueue
     }
 
     public func start() {
@@ -62,7 +62,7 @@ public final class URLImageLoader {
         
         let request = URLRequest(url: url)
         
-        if tryLoadFromCacheInCallbackQueue(request: request) {
+        if tryLoadFromCache(request: request) {
             return
         }
         
@@ -82,39 +82,19 @@ public final class URLImageLoader {
         self.state = .inited
     }
     
-    private func _tryLoadFromCache(request: URLRequest) -> UIImage?
-    {
+    private func tryLoadFromCache(request: URLRequest) -> Bool {
+        precondition(OperationQueue.current == callbackQueue)
+        
         guard let response = loadingManager.urlCache.cachedResponse(for: request) else {
-            return nil
+            return false
         }
         
         guard let image = try? processData(response.data) else {
             loadingManager.urlCache.removeCachedResponse(for: request)
-            return nil
-        }
-        
-        return image
-    }
-    
-    private func tryLoadFromCacheInCallbackQueue(request: URLRequest) -> Bool {
-        precondition(OperationQueue.current == callbackQueue)
-        
-        guard let image = _tryLoadFromCache(request: request) else {
             return false
         }
+        
         handleSuccess(image: image)
-        return true
-    }
-    
-    private func tryLoadFromCacheInNetworkQueue(request: URLRequest) -> Bool {
-        precondition(OperationQueue.current == loadingManager.queue)
-        
-        guard let image = _tryLoadFromCache(request: request) else {
-            return false
-        }
-        callbackQueue.addOperation {
-            self.handleSuccess(image: image)
-        }
         return true
     }
     
@@ -126,13 +106,15 @@ public final class URLImageLoader {
     }
     
     private func startDownload(request: URLRequest) {
-        let task = loadingManager.task(request: request)
+        precondition(OperationQueue.current == callbackQueue)
+        
+        let task = loadingManager.task(request: request,
+                                       callbackQueue: callbackQueue)
+        
         task.errorHandler = { [weak self] (error) in
             guard let self = self else { return }
             
-            self.callbackQueue.addOperation {
-                self.handleError(error)
-            }
+            self.handleError(error)
         }
         task.completeHandler = { [weak self, weak task] () in
             guard let self = self,
@@ -142,21 +124,17 @@ public final class URLImageLoader {
                 let data = task.data
                 let image = try self.processData(data)
                 
-                self.callbackQueue.addOperation {
-                    self.handleSuccess(image: image)
-                }
+                self.handleSuccess(image: image)
             } catch {
-                self.callbackQueue.addOperation {
-                    self.handleError(error)
-                }
+                self.handleError(error)
             }
         }
-        task.shouldRestartHandler = { [weak self] () in
+        task.shouldResumeHandler = { [weak self] () in
             guard let self = self else {
                 return false
             }
             
-            if self.tryLoadFromCacheInNetworkQueue(request: request) {
+            if self.tryLoadFromCache(request: request) {
                 return false
             }
             

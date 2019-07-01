@@ -53,7 +53,7 @@ public final class URLImageProperty {
     private let loader: URLImageLoader
     
     public init() {
-        self.loader = URLImageLoader()
+        self.loader = URLImageLoader(callbackQueue: .main)
         
         loader.imageHandler = { [weak self] (image) in
             guard let self = self else { return }
