@@ -2,96 +2,150 @@ import Foundation
 
 public final class URLImageLoadingManager {
     public final class Task {
-        internal private(set) weak var owner: URLImageLoadingManager?
+        private weak var owner: URLImageLoadingManager?
+        
         public let request: URLRequest
-        internal let syncQueue: DispatchQueue
-        private let callbackQueue: OperationQueue
-        internal let urlTask: URLSessionTask
-        
-        internal var isFinished: Bool
-        internal var sync_isFinished: Bool {
-            return syncQueue.sync { isFinished }
-        }
-        
-        internal var _data: Data
-        
         public var data: Data {
-            return syncQueue.sync { _data }
+            return workQueue.sync { _data }
+        }
+        public var errorHandler: ((Error) -> Void)? {
+            get { return workQueue.sync { _errorHander } }
+            set { workQueue.sync { _errorHander = newValue } }
+        }
+        public var completeHandler: (() -> Void)? {
+            get { return workQueue.sync { _completeHandler } }
+            set { workQueue.sync { _completeHandler = newValue} }
+        }
+        public var shouldResumeHandler: (() -> Bool)? {
+            get { return workQueue.sync { _shouldResumeHandler } }
+            set { workQueue.sync { _shouldResumeHandler = newValue } }
         }
         
-        public var errorHandler: ((Error) -> Void)?
-        public var completeHandler: (() -> Void)?
-        public var shouldResumeHandler: (() -> Bool)?
-
-        init(owner: URLImageLoadingManager,
-             request: URLRequest,
-             urlTask: URLSessionTask,
-             callbackQueue: OperationQueue)
+        private let workQueue: DispatchQueue
+        private let callbackQueue: OperationQueue
+        
+        internal let urlTask: URLSessionTask
+        internal private(set) var isFinished: Bool {
+            get {
+                dispatchPrecondition(condition: .onQueue(workQueue))
+                return _isFinished
+            }
+            set {
+                dispatchPrecondition(condition: .onQueue(workQueue))
+                _isFinished = newValue
+            }
+        }
+        
+        private var _isFinished: Bool
+        private var _data: Data
+        private var _errorHander: ((Error) -> Void)?
+        private var _completeHandler: (() -> Void)?
+        private var _shouldResumeHandler: (() -> Bool)?
+        
+        internal init(owner: URLImageLoadingManager,
+                      request: URLRequest,
+                      urlTask: URLSessionTask,
+                      callbackQueue: OperationQueue)
         {
             self.owner = owner
+            self.workQueue = owner.workQueue
             self.request = request
             self.urlTask = urlTask
-            self.syncQueue = DispatchQueue(label: "URLImageLoadingManager.Task.syncQueue")
             self.callbackQueue = callbackQueue
-            self.isFinished = false
+            self._isFinished = false
             self._data = Data()
         }
         
-        // thread safe
         public func start() {
-            _ = owner?.start(task: self)
+            workQueue.sync {
+                _ = owner?.start(task: self)
+            }
         }
         
-        // thread safe
         public func cancel() {
-            owner?.cancel(task: self)
-        }
-        
-        private func sync_takeFinish() -> Bool {
-            return syncQueue.sync {
-                if isFinished {
-                    return false
-                }
-                isFinished = true
-                return true
+            workQueue.sync {
+                owner?.cancel(task: self)
             }
         }
         
+        
+        internal func appendData(_ data: Data) {
+            dispatchPrecondition(condition: .onQueue(workQueue))
+            
+            _data.append(data)
+        }
+
         internal func _cancel() {
-            if sync_takeFinish() {
-                urlTask.cancel()
+            dispatchPrecondition(condition: .onQueue(workQueue))
+            
+            if isFinished {
+                return
             }
+            isFinished = true
+
+            self.urlTask.cancel()
         }
         
         internal func handleSuccess() {
+            dispatchPrecondition(condition: .onQueue(workQueue))
+
             callbackQueue.addOperation {
-                if self.sync_takeFinish() {
-                    self.completeHandler?()
+                let next: (() -> Void)? = self.workQueue.sync {
+                    if self.isFinished {
+                        return nil
+                    }
+                    self.isFinished = true
+                    
+                    return {
+                        self.completeHandler?()
+                    }
                 }
+                
+                next?()
             }
         }
         
         internal func handleError(_ error: Error) {
+            dispatchPrecondition(condition: .onQueue(workQueue))
+            
             callbackQueue.addOperation {
-                if self.sync_takeFinish() {
-                    self.errorHandler?(error)
+                let next: (() -> Void)? = self.workQueue.sync {
+                    if self.isFinished {
+                        return nil
+                    }
+                    self.isFinished = true
+                    
+                    return {
+                        self.errorHandler?(error)
+                    }
                 }
+                next?()
             }
         }
-        
+
         internal func requestShouldResume(_ handler: @escaping (Bool) -> Void) {
-            var does: Bool = false
+            dispatchPrecondition(condition: .onQueue(workQueue))
+            
+            var should: Bool = false
             
             let op = BlockOperation {
-                if self.sync_isFinished {
-                    return
+                let next: (() -> Void)? = self.workQueue.sync {
+                    if self.isFinished {
+                        return nil
+                    }
+                    
+                    return {
+                        should = self.shouldResumeHandler?() ?? false
+                    }
                 }
-                
-                does = self.shouldResumeHandler?() ?? false
+
+                next?()
             }
             
             op.completionBlock = {
-                handler(does)
+                self.workQueue.async {
+                    handler(should)
+                }
             }
             
             callbackQueue.addOperation(op)
@@ -127,7 +181,6 @@ public final class URLImageLoadingManager {
                                callbackQueue: .main)
     
     public let urlCache: URLCache
-    private let syncQueue: DispatchQueue
     private let workQueue: DispatchQueue
     private let callbackQueue: OperationQueue
     private let delegateAdapter: DelegateAdapter
@@ -135,13 +188,13 @@ public final class URLImageLoadingManager {
     
     private var urlTaskMap: [URLSessionTask: Task] = [:]
     private var waitingTasks: [Task] = []
-    private var isUpdateRunning: Bool = false
 
+    private var resumingWork: DispatchWorkItem?
+    
     public init(urlCache: URLCache,
                 callbackQueue: OperationQueue)
     {
-        syncQueue = DispatchQueue(label: "URLImageLoadingManager.syncQueue")
-        workQueue = DispatchQueue(label: "URLImageLoadingManager.workQueue")
+        self.workQueue = DispatchQueue(label: "URLImageLoadingManager.workQueue")
         self.callbackQueue = callbackQueue
         
         self.urlCache = urlCache
@@ -158,11 +211,10 @@ public final class URLImageLoadingManager {
         delegateAdapter.owner = self
     }
     
-    // thread safe
     public func task(request: URLRequest,
                      callbackQueue: OperationQueue) -> Task
     {
-        return syncQueue.sync {
+        return workQueue.sync {
             let urlTask = session.dataTask(with: request)
             let task = Task(owner: self,
                             request: request,
@@ -173,42 +225,43 @@ public final class URLImageLoadingManager {
     }
     
     private func task(for urlTask: URLSessionTask) -> Task? {
+        dispatchPrecondition(condition: .onQueue(workQueue))
+        
         return urlTaskMap[urlTask]
     }
     
     private var runningTasks: [Task] {
+        dispatchPrecondition(condition: .onQueue(workQueue))
+        
         return urlTaskMap.values.map { $0 }
     }
     
     private func start(task: Task) -> Bool {
-        return syncQueue.sync {
-            task.syncQueue.sync {
-                if task.isFinished {
-                    return false
-                }
-                
-                if (self.runningTasks.contains { $0.request == task.request }) {
-                    self.waitingTasks.append(task)
-                } else {
-                    self.urlTaskMap[task.urlTask] = task
-                    task.urlTask.resume()
-                }
-                
-                return true
-            }
+        dispatchPrecondition(condition: .onQueue(workQueue))
+        
+        if task.isFinished {
+            return false
         }
+        
+        if (self.runningTasks.contains { $0.request == task.request }) {
+            self.waitingTasks.append(task)
+        } else {
+            self.urlTaskMap[task.urlTask] = task
+            task.urlTask.resume()
+        }
+        
+        return true
     }
     
     private func cancel(task: Task) {
-        syncQueue.sync {
-            self.removeTask(task)
-            task._cancel()
-        }
+        dispatchPrecondition(condition: .onQueue(workQueue))
+        
+        self.removeTask(task)
+        task._cancel()
     }
     
-    private func removeTask(_ task: Task)
-    {
-        dispatchPrecondition(condition: .onQueue(syncQueue))
+    private func removeTask(_ task: Task) {
+        dispatchPrecondition(condition: .onQueue(workQueue))
         
         waitingTasks.removeAll { $0 === task }
         
@@ -216,21 +269,20 @@ public final class URLImageLoadingManager {
             _ = urlTaskMap.removeValue(forKey: task.urlTask)
         }
         
-        workQueue.async {
-            self.tryResume()
-        }
+        startResuming()
     }
     
     private func isSameRequestRunning(_ request: URLRequest) -> Bool {
+        dispatchPrecondition(condition: .onQueue(workQueue))
+        
         return runningTasks.contains { $0.request == request }
     }
     
-    private func tryResume() {
+    private func startResuming() {
         dispatchPrecondition(condition: .onQueue(workQueue))
         
-        var tasks: [Task] = syncQueue.sync {
-            waitingTasks.filter { !isSameRequestRunning($0.request) }
-        }
+        let tasks: [Task] = waitingTasks
+            .filter { !isSameRequestRunning($0.request) }
         
         func proc1(index: Int) {
             dispatchPrecondition(condition: .onQueue(workQueue))
@@ -239,68 +291,71 @@ public final class URLImageLoadingManager {
             
             let task = tasks[index]
             
-            syncQueue.sync {
-                waitingTasks.removeAll { $0 === task }
-            }
+            waitingTasks.removeAll { $0 === task }
             
-            task.requestShouldResume { (does) in
-                if !does {
-                    self.workQueue.async {
-                        proc1(index: index + 1)
-                    }
-                    return
-                }
-                
-                self.workQueue.async {
-                    proc2(task: task, index: index)
-                }
+            task.requestShouldResume { (should) in
+                proc2(should: should, index: index)
             }
         }
         
-        func proc2(task: Task, index: Int) {
+        func proc2(should: Bool, index: Int) {
             dispatchPrecondition(condition: .onQueue(workQueue))
             
-            if !start(task: task) {
-                workQueue.async {
-                    proc1(index: index + 1)
+            let task = tasks[index]
+            
+            if should {
+                let started = start(task: task)
+                if started {
+                    // end process
+                    return
                 }
-                return
+            }
+            
+            // go next
+            self.postResumingWork {
+                proc1(index: index + 1)
             }
         }
         
-        proc1(index: 0)
-    }
-    
-    private func sync_task(for urlTask: URLSessionTask) -> Task? {
-        return syncQueue.sync {
-            task(for: urlTask)
+        postResumingWork {
+            proc1(index: 0)
         }
     }
-
-    private func didReceiveData(urlTask: URLSessionTask, data: Data) {
-        guard let task = sync_task(for: urlTask) else { return }
+    
+    private func postResumingWork(_ f: @escaping () -> Void) {
+        dispatchPrecondition(condition: .onQueue(workQueue))
         
-        task.syncQueue.sync {
-            task._data.append(data)
+        resumingWork?.cancel()
+        
+        let work = DispatchWorkItem(block: f)
+        self.resumingWork = work
+        workQueue.async(execute: work)
+    }
+    
+    private func didReceiveData(urlTask: URLSessionTask, data: Data) {
+        workQueue.sync {
+            guard let task = self.task(for: urlTask) else { return }
+            
+            task.appendData(data)
         }
     }
     
     private func didError(urlTask: URLSessionTask, error: Error) {
-        guard let task = sync_task(for: urlTask) else { return }
-        
-        task.handleError(error)
-        
-        syncQueue.sync {
+        workQueue.sync {
+            guard let task = self.task(for: urlTask) else { return }
+            
+            task.handleError(error)
+            
             removeTask(task)
         }
     }
     
     private func didComplete(urlTask: URLSessionTask) {
-        guard let task = sync_task(for: urlTask) else { return }
-        
-        task.handleSuccess()
-        
-        syncQueue.sync {
+        workQueue.sync {
+            guard let task = self.task(for: urlTask) else { return }
+            
+            task.handleSuccess()
+            
             removeTask(task)
         }
     }
