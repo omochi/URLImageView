@@ -35,8 +35,19 @@ public final class URLImageLoadingManager {
                 _isFinished = newValue
             }
         }
+        private var isCanceled: Bool {
+            get {
+                dispatchPrecondition(condition: .onQueue(workQueue))
+                return _isCanceled
+            }
+            set {
+                dispatchPrecondition(condition: .onQueue(workQueue))
+                _isCanceled = newValue
+            }
+        }
         
         private var _isFinished: Bool
+        private var _isCanceled: Bool
         private var _data: Data
         private var _errorHander: ((Error) -> Void)?
         private var _completeHandler: (() -> Void)?
@@ -53,6 +64,7 @@ public final class URLImageLoadingManager {
             self.urlTask = urlTask
             self.callbackQueue = callbackQueue
             self._isFinished = false
+            self._isCanceled = false
             self._data = Data()
         }
         
@@ -68,7 +80,6 @@ public final class URLImageLoadingManager {
             }
         }
         
-        
         internal func appendData(_ data: Data) {
             dispatchPrecondition(condition: .onQueue(workQueue))
             
@@ -78,10 +89,11 @@ public final class URLImageLoadingManager {
         internal func _cancel() {
             dispatchPrecondition(condition: .onQueue(workQueue))
             
-            if isFinished {
+            if isCanceled {
                 return
             }
             isFinished = true
+            isCanceled = true
 
             self.urlTask.cancel()
         }
@@ -95,7 +107,16 @@ public final class URLImageLoadingManager {
             isFinished = true
 
             callbackQueue.addOperation {
-                self.completeHandler?()
+                let next: (() -> Void)? = self.workQueue.sync {
+                    if self.isCanceled {
+                        return nil
+                    }
+                    
+                    return {
+                        self.completeHandler?()
+                    }
+                }
+                next?()
             }
         }
         
@@ -108,7 +129,16 @@ public final class URLImageLoadingManager {
             isFinished = true
             
             callbackQueue.addOperation {
-                self.errorHandler?(error)
+                let next: (() -> Void)? = self.workQueue.sync {
+                    if self.isCanceled {
+                        return nil
+                    }
+                    
+                    return {
+                        self.errorHandler?(error)
+                    }
+                }
+                next?()
             }
         }
 
