@@ -88,38 +88,27 @@ public final class URLImageLoadingManager {
         
         internal func handleSuccess() {
             dispatchPrecondition(condition: .onQueue(workQueue))
+            
+            if isFinished {
+                return
+            }
+            isFinished = true
 
             callbackQueue.addOperation {
-                let next: (() -> Void)? = self.workQueue.sync {
-                    if self.isFinished {
-                        return nil
-                    }
-                    self.isFinished = true
-                    
-                    return {
-                        self.completeHandler?()
-                    }
-                }
-                
-                next?()
+                self.completeHandler?()
             }
         }
         
         internal func handleError(_ error: Error) {
             dispatchPrecondition(condition: .onQueue(workQueue))
             
+            if isFinished {
+                return
+            }
+            isFinished = true
+            
             callbackQueue.addOperation {
-                let next: (() -> Void)? = self.workQueue.sync {
-                    if self.isFinished {
-                        return nil
-                    }
-                    self.isFinished = true
-                    
-                    return {
-                        self.errorHandler?(error)
-                    }
-                }
-                next?()
+                self.errorHandler?(error)
             }
         }
 
