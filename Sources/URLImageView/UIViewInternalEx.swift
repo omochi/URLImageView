@@ -1,4 +1,4 @@
-import Foundation
+import UIKit
 
 internal extension UIView {
     static var exKey: UInt8 = 0

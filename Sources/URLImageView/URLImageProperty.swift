@@ -1,4 +1,4 @@
-import Foundation
+import UIKit
 
 public final class URLImageProperty {
     public var url: URL? {

@@ -1,5 +1,6 @@
 import Foundation
 import os
+import UIKit
 
 public final class URLImageLoader {
     public enum State {
