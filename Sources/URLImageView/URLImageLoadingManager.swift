@@ -107,7 +107,7 @@ public final class URLImageLoadingManager {
             isFinished = true
 
             callbackQueue.addOperation {
-                let next: (() -> Void)? = self.workQueue.sync {
+                let next = self.workQueue.syncAndNext {
                     if self.isCanceled {
                         return nil
                     }
@@ -129,7 +129,7 @@ public final class URLImageLoadingManager {
             isFinished = true
             
             callbackQueue.addOperation {
-                let next: (() -> Void)? = self.workQueue.sync {
+                let next = self.workQueue.syncAndNext {
                     if self.isCanceled {
                         return nil
                     }
@@ -148,7 +148,7 @@ public final class URLImageLoadingManager {
             var should: Bool = false
             
             let op = BlockOperation {
-                let next: (() -> Void)? = self.workQueue.sync {
+                let next = self.workQueue.syncAndNext {
                     if self.isFinished {
                         return nil
                     }
@@ -302,8 +302,9 @@ public final class URLImageLoadingManager {
         
         let tasks: [Task] = waitingTasks
             .filter { !isSameRequestRunning($0.request) }
+        var index: Int = 0
         
-        func proc1(index: Int) {
+        func proc() {
             dispatchPrecondition(condition: .onQueue(workQueue))
             
             guard index < tasks.count else { return }
@@ -313,31 +314,26 @@ public final class URLImageLoadingManager {
             waitingTasks.removeAll { $0 === task }
             
             task.requestShouldResume { (should) in
-                proc2(should: should, index: index)
-            }
-        }
-        
-        func proc2(should: Bool, index: Int) {
-            dispatchPrecondition(condition: .onQueue(workQueue))
-            
-            let task = tasks[index]
-            
-            if should {
-                let started = start(task: task)
-                if started {
-                    // end process
-                    return
+                dispatchPrecondition(condition: .onQueue(self.workQueue))
+                
+                if should {
+                    let started = self.start(task: task)
+                    if started {
+                        // end process
+                        return
+                    }
                 }
-            }
-            
-            // go next
-            self.postResumingWork {
-                proc1(index: index + 1)
+                
+                // go next
+                self.postResumingWork {
+                    index += 1
+                    proc()
+                }
             }
         }
         
         postResumingWork {
-            proc1(index: 0)
+            proc()
         }
     }
     

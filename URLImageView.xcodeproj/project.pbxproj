@@ -16,6 +16,7 @@
 		D660CBA122C1E02400BF9AE8 /* URLImageProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = D660CBA022C1E02400BF9AE8 /* URLImageProperty.swift */; };
 		D660CBA322C1E50900BF9AE8 /* UIButtonEx.swift in Sources */ = {isa = PBXBuildFile; fileRef = D660CBA222C1E50900BF9AE8 /* UIButtonEx.swift */; };
 		D660CBA522C1E59900BF9AE8 /* ExProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D660CBA422C1E59900BF9AE8 /* ExProtocol.swift */; };
+		D6886A4322DF068D000DFD84 /* DispatchQueueEx.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6886A4222DF068D000DFD84 /* DispatchQueueEx.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,7 @@
 		D660CBA022C1E02400BF9AE8 /* URLImageProperty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLImageProperty.swift; sourceTree = "<group>"; };
 		D660CBA222C1E50900BF9AE8 /* UIButtonEx.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIButtonEx.swift; sourceTree = "<group>"; };
 		D660CBA422C1E59900BF9AE8 /* ExProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExProtocol.swift; sourceTree = "<group>"; };
+		D6886A4222DF068D000DFD84 /* DispatchQueueEx.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DispatchQueueEx.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,6 +83,7 @@
 				D660CB9E22C1DDF500BF9AE8 /* UIViewInternalEx.swift */,
 				D62FB70F22BB7C6A0008C321 /* UIImageViewEx.swift */,
 				D660CBA222C1E50900BF9AE8 /* UIButtonEx.swift */,
+				D6886A4222DF068D000DFD84 /* DispatchQueueEx.swift */,
 			);
 			name = Sources;
 			path = Sources/URLImageView;
@@ -139,6 +142,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = D62FB6C522BB2C650008C321;
 			productRefGroup = D62FB6D022BB2C650008C321 /* Products */;
@@ -173,6 +177,7 @@
 				D62FB70E22BB4A9F0008C321 /* URLImageLoadingManager.swift in Sources */,
 				D660CBA122C1E02400BF9AE8 /* URLImageProperty.swift in Sources */,
 				D62FB71022BB7C6A0008C321 /* UIImageViewEx.swift in Sources */,
+				D6886A4322DF068D000DFD84 /* DispatchQueueEx.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -218,7 +223,6 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
-				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
