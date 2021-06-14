@@ -74,4 +74,9 @@ extension UIImageView {
     public func renderURLImage() {
         ex.url.render()
     }
+
+    public var mustStoreURLImageCache: Bool {
+        get { return ex.url.mustStoreCache }
+        set { ex.url.mustStoreCache = newValue }
+    }
 }

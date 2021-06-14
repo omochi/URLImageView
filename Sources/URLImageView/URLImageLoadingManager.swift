@@ -48,16 +48,19 @@ public final class URLImageLoadingManager {
         
         private var _isFinished: Bool
         private var _isCanceled: Bool
-        private var _data: Data
+        internal var _data: Data
         private var _errorHander: ((Error) -> Void)?
         private var _completeHandler: (() -> Void)?
         private var _shouldResumeHandler: (() -> Bool)?
+        internal let _mustStoreCache: Bool
         
-        internal init(owner: URLImageLoadingManager,
-                      request: URLRequest,
-                      urlTask: URLSessionTask,
-                      callbackQueue: OperationQueue)
-        {
+        internal init(
+            owner: URLImageLoadingManager,
+            request: URLRequest,
+            urlTask: URLSessionTask,
+            callbackQueue: OperationQueue,
+            mustStoreCache: Bool
+        ) {
             self.owner = owner
             self.workQueue = owner.workQueue
             self.request = request
@@ -66,6 +69,7 @@ public final class URLImageLoadingManager {
             self._isFinished = false
             self._isCanceled = false
             self._data = Data()
+            self._mustStoreCache = mustStoreCache
         }
         
         public func start() {
@@ -195,9 +199,10 @@ public final class URLImageLoadingManager {
         }
     }
     
-    public static let shared: URLImageLoadingManager =
-        URLImageLoadingManager(urlCache: .shared,
-                               callbackQueue: .main)
+    public static var shared: URLImageLoadingManager = URLImageLoadingManager(
+        urlCache: .shared,
+        callbackQueue: .main
+    )
     
     public let urlCache: URLCache
     private let workQueue: DispatchQueue
@@ -230,15 +235,20 @@ public final class URLImageLoadingManager {
         delegateAdapter.owner = self
     }
     
-    public func task(request: URLRequest,
-                     callbackQueue: OperationQueue) -> Task
-    {
+    public func task(
+        request: URLRequest,
+        callbackQueue: OperationQueue,
+        mustStoreCache: Bool
+    ) -> Task {
         return workQueue.sync {
             let urlTask = session.dataTask(with: request)
-            let task = Task(owner: self,
-                            request: request,
-                            urlTask: urlTask,
-                            callbackQueue: callbackQueue)
+            let task = Task(
+                owner: self,
+                request: request,
+                urlTask: urlTask,
+                callbackQueue: callbackQueue,
+                mustStoreCache: mustStoreCache
+            )
             return task
         }
     }
@@ -368,6 +378,17 @@ public final class URLImageLoadingManager {
     private func didComplete(urlTask: URLSessionTask) {
         workQueue.sync {
             guard let task = self.task(for: urlTask) else { return }
+
+            if task._mustStoreCache,
+               let urlTask = urlTask as? URLSessionDataTask,
+               let response = urlTask.response
+            {
+                let cache = CachedURLResponse(
+                    response: response,
+                    data: task._data
+                )
+                self.urlCache.storeCachedResponse(cache, for: urlTask)
+            }
             
             task.handleSuccess()
             

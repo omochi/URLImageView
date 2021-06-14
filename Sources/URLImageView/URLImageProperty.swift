@@ -49,6 +49,11 @@ public final class URLImageProperty {
         get { return loader.isLoadingHandler }
         set { loader.isLoadingHandler = newValue }
     }
+
+    public var mustStoreCache: Bool {
+        get { return loader.mustStoreCache }
+        set { loader.mustStoreCache = newValue }
+    }
     
     private let loader: URLImageLoader
     

@@ -42,11 +42,14 @@ public final class URLImageLoader {
     private let callbackQueue: OperationQueue
 
     private var loadingTask: URLImageLoadingManager.Task?
+
+    public var mustStoreCache: Bool
     
     public init(callbackQueue: OperationQueue) {
         self.loadingManager = URLImageLoadingManager.shared
         self._state = .inited
         self.callbackQueue = callbackQueue
+        self.mustStoreCache = false
     }
 
     public func start() {
@@ -109,8 +112,11 @@ public final class URLImageLoader {
     private func startDownload(request: URLRequest) {
         precondition(OperationQueue.current == callbackQueue)
         
-        let task = loadingManager.task(request: request,
-                                       callbackQueue: callbackQueue)
+        let task = loadingManager.task(
+            request: request,
+            callbackQueue: callbackQueue,
+            mustStoreCache: mustStoreCache
+        )
         
         task.errorHandler = { [weak self] (error) in
             guard let self = self else { return }
