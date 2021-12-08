@@ -61,17 +61,16 @@ public final class URLImageLoader {
             handleSuccess(image: nil)
             return
         }
-        
+
         self.state = .loading
-        
+
         let request = URLRequest(url: url)
-        
-        if tryLoadFromCache(request: request) {
-            return
+        if let cachedImage = self.loadCache(request: request) {
+            self.image = cachedImage
+        } else {
+            self.image = nil
         }
-        
-        self.image = nil
-        
+
         startDownload(request: request)
     }
     
@@ -85,21 +84,20 @@ public final class URLImageLoader {
         
         self.state = .inited
     }
-    
-    private func tryLoadFromCache(request: URLRequest) -> Bool {
+
+    private func loadCache(request: URLRequest) -> UIImage? {
         precondition(OperationQueue.current == callbackQueue)
-        
+
         guard let response = loadingManager.urlCache.cachedResponse(for: request) else {
-            return false
+            return nil
         }
-        
+
         guard let image = try? processData(response.data) else {
             loadingManager.urlCache.removeCachedResponse(for: request)
-            return false
+            return nil
         }
-        
-        handleSuccess(image: image)
-        return true
+
+        return image
     }
     
     private func processData(_ data: Data) throws -> UIImage {
@@ -136,15 +134,7 @@ public final class URLImageLoader {
                 self.handleError(error)
             }
         }
-        task.shouldResumeHandler = { [weak self] () in
-            guard let self = self else {
-                return false
-            }
-            
-            if self.tryLoadFromCache(request: request) {
-                return false
-            }
-            
+        task.shouldResumeHandler = { () in
             return true
         }
         
